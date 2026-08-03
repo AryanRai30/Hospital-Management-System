@@ -1,0 +1,27 @@
+{
+  "name": "hospital-management-system",
+  "version": "1.0.0",
+  "description": "Production-ready full-stack Hospital Management System",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "npm --prefix frontend run build"
+  },
+  "keywords": [
+    "hospital-management-system",
+    "react",
+    "nodejs",
+    "express",
+    "mysql",
+    "redux-toolkit",
+    "tailwindcss"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
