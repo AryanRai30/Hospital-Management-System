@@ -15,6 +15,8 @@ USE `hospital_management_db`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `audit_logs`;
+DROP TABLE IF EXISTS `login_history`;
+DROP TABLE IF EXISTS `refresh_tokens`;
 DROP TABLE IF EXISTS `notifications`;
 DROP TABLE IF EXISTS `payments`;
 DROP TABLE IF EXISTS `bill_items`;
@@ -61,14 +63,58 @@ CREATE TABLE `users` (
   `password_hash` VARCHAR(255) NOT NULL COMMENT 'Bcrypt hashed password',
   `phone_number` VARCHAR(20) NULL UNIQUE COMMENT 'Contact phone number',
   `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1 = Active, 0 = Inactive',
+  `is_email_verified` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '0 = Unverified, 1 = Verified',
+  `email_verification_token` VARCHAR(255) NULL COMMENT 'Token for email verification',
+  `email_verification_expires` DATETIME NULL COMMENT 'Expiration timestamp for email verification token',
+  `reset_password_token` VARCHAR(255) NULL COMMENT 'Hashed token for password reset',
+  `reset_password_expires` DATETIME NULL COMMENT 'Expiration timestamp for password reset token',
+  `failed_login_attempts` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Consecutive failed login counter',
+  `lockout_until` DATETIME NULL COMMENT 'Timestamp until which account is locked out',
   `last_login_at` DATETIME NULL COMMENT 'Timestamp of last successful authentication',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_users_roles` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   INDEX `idx_users_email` (`email`),
   INDEX `idx_users_role_id` (`role_id`),
-  INDEX `idx_users_is_active` (`is_active`)
+  INDEX `idx_users_is_active` (`is_active`),
+  INDEX `idx_users_email_verification` (`email_verification_token`),
+  INDEX `idx_users_reset_password` (`reset_password_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='System user credentials and base account profile';
+
+-- Table: refresh_tokens
+-- Active JWT refresh tokens for session revocation & rotation.
+CREATE TABLE `refresh_tokens` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NOT NULL COMMENT 'Foreign key to users table',
+  `token_hash` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Hashed refresh token',
+  `expires_at` DATETIME NOT NULL COMMENT 'Refresh token expiration time',
+  `is_revoked` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1 = Revoked',
+  `ip_address` VARCHAR(45) NULL COMMENT 'Client IP address during login',
+  `user_agent` VARCHAR(255) NULL COMMENT 'Client User Agent during login',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_refresh_tokens_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  INDEX `idx_refresh_tokens_user_id` (`user_id`),
+  INDEX `idx_refresh_tokens_token_hash` (`token_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Active JWT refresh tokens for session revocation & rotation';
+
+-- Table: login_history
+-- Authentication attempt and security audit history.
+CREATE TABLE `login_history` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` BIGINT UNSIGNED NULL COMMENT 'Foreign key to users table (NULL if account non-existent)',
+  `email` VARCHAR(100) NOT NULL COMMENT 'Login attempt email address',
+  `status` ENUM('SUCCESS', 'FAILED', 'ACCOUNT_LOCKED') NOT NULL COMMENT 'Result of login attempt',
+  `logout_time` DATETIME NULL COMMENT 'Timestamp when user logged out',
+  `ip_address` VARCHAR(45) NULL COMMENT 'Client IP address',
+  `user_agent` VARCHAR(255) NULL COMMENT 'Client User Agent string',
+  `failure_reason` VARCHAR(255) NULL COMMENT 'Detailed reason for failure',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_login_history_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  INDEX `idx_login_history_user_id` (`user_id`),
+  INDEX `idx_login_history_email` (`email`),
+  INDEX `idx_login_history_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Authentication attempt and security audit history';
 
 -- =============================================================================
 -- MODULE 2: HOSPITAL ENTITIES & INFRASTRUCTURE

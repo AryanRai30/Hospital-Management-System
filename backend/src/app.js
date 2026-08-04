@@ -12,11 +12,14 @@ const errorHandler = require('./middlewares/error.middleware');
 const ApiError = require('./utils/apiError');
 const { HTTP_STATUS } = require('./utils/constants');
 
+const cookieParser = require('./middlewares/cookie.middleware');
+
 const app = express();
 
 // Security Middlewares
 app.use(helmet());
 app.use(cors(corsOptions));
+app.use(cookieParser);
 
 // Logging Middleware
 if (process.env.NODE_ENV === 'development') {

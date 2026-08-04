@@ -1,6 +1,11 @@
-const { pool, testConnection } = require('../config/db.config');
+const UserModel = require('./user.model');
+const RefreshTokenModel = require('./refreshToken.model');
+const LoginHistoryModel = require('./loginHistory.model');
+const AuditLogModel = require('./auditLog.model');
 
 module.exports = {
-  db: pool,
-  testConnection
+  UserModel,
+  RefreshTokenModel,
+  LoginHistoryModel,
+  AuditLogModel
 };

@@ -10,6 +10,8 @@ USE `hospital_management_db`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 TRUNCATE TABLE `audit_logs`;
+TRUNCATE TABLE `login_history`;
+TRUNCATE TABLE `refresh_tokens`;
 TRUNCATE TABLE `notifications`;
 TRUNCATE TABLE `payments`;
 TRUNCATE TABLE `bill_items`;
@@ -46,15 +48,15 @@ INSERT INTO `roles` (`id`, `name`, `description`) VALUES
 -- 2. SEED USERS
 -- =============================================================================
 -- Password hash sample corresponds to bcrypt hash of 'Password123!'
-INSERT INTO `users` (`id`, `role_id`, `first_name`, `last_name`, `email`, `password_hash`, `phone_number`, `is_active`) VALUES
-(1, 1, 'Alexander', 'Pierce', 'admin@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550001111', 1),
-(2, 2, 'Emily', 'Watson', 'dr.watson@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550002222', 1),
-(3, 2, 'Robert', 'Chen', 'dr.chen@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550003333', 1),
-(4, 4, 'John', 'Doe', 'john.doe@example.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550004444', 1),
-(5, 4, 'Sarah', 'Jenkins', 'sarah.j@example.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550005555', 1),
-(6, 5, 'Jessica', 'Alba', 'receptionist@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550006666', 1),
-(7, 6, 'Michael', 'Scott', 'pharmacy@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550007777', 1),
-(8, 7, 'David', 'Miller', 'lab.tech@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550008888', 1);
+INSERT INTO `users` (`id`, `role_id`, `first_name`, `last_name`, `email`, `password_hash`, `phone_number`, `is_active`, `is_email_verified`) VALUES
+(1, 1, 'Alexander', 'Pierce', 'admin@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550001111', 1, 1),
+(2, 2, 'Emily', 'Watson', 'dr.watson@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550002222', 1, 1),
+(3, 2, 'Robert', 'Chen', 'dr.chen@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550003333', 1, 1),
+(4, 4, 'John', 'Doe', 'john.doe@example.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550004444', 1, 1),
+(5, 4, 'Sarah', 'Jenkins', 'sarah.j@example.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550005555', 1, 1),
+(6, 5, 'Jessica', 'Alba', 'receptionist@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550006666', 1, 1),
+(7, 6, 'Michael', 'Scott', 'pharmacy@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550007777', 1, 1),
+(8, 7, 'David', 'Miller', 'lab.tech@hospital.com', '$2a$12$eImiTXuWVxfM37uY4JANjO5E/7e/6iNf8E3O/K8L9W0w1m2n3o4p5', '+15550008888', 1, 1);
 
 -- =============================================================================
 -- 3. SEED DEPARTMENTS

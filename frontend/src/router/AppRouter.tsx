@@ -3,7 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Dashboard } from '../pages/Dashboard';
 import { Login } from '../pages/Login';
+import { Register } from '../pages/Register';
+import { ForgotPassword } from '../pages/ForgotPassword';
+import { ResetPassword } from '../pages/ResetPassword';
+import { VerifyEmail } from '../pages/VerifyEmail';
+import { Unauthorized } from '../pages/Unauthorized';
+import { SessionExpired } from '../pages/SessionExpired';
 import { NotFound } from '../pages/NotFound';
+import { ProtectedRoute } from '../components/common/ProtectedRoute';
 import { ROUTES } from '../config/constants';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
@@ -29,17 +36,68 @@ export const AppRouter: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Authentication Routes */}
         <Route path={ROUTES.LOGIN} element={<Login />} />
+        <Route path={ROUTES.REGISTER} element={<Register />} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+        <Route path={ROUTES.VERIFY_EMAIL} element={<VerifyEmail />} />
+        <Route path={ROUTES.UNAUTHORIZED} element={<Unauthorized />} />
+        <Route path={ROUTES.SESSION_EXPIRED} element={<SessionExpired />} />
 
-        {/* Main Application Layout Routes */}
-        <Route path={ROUTES.HOME} element={<MainLayout />}>
+        {/* Protected Application Routes */}
+        <Route
+          path={ROUTES.HOME}
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-          <Route path={ROUTES.PATIENTS} element={<ModulePlaceholder title="Patients" />} />
-          <Route path={ROUTES.DOCTORS} element={<ModulePlaceholder title="Doctors" />} />
-          <Route path={ROUTES.APPOINTMENTS} element={<ModulePlaceholder title="Appointments" />} />
-          <Route path={ROUTES.PHARMACY} element={<ModulePlaceholder title="Pharmacy" />} />
-          <Route path={ROUTES.BILLING} element={<ModulePlaceholder title="Billing" />} />
+
+          {/* Role Protected Routes */}
+          <Route
+            path={ROUTES.PATIENTS}
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST']}>
+                <ModulePlaceholder title="Patients" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.DOCTORS}
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'RECEPTIONIST']}>
+                <ModulePlaceholder title="Doctors" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.APPOINTMENTS}
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'NURSE', 'PATIENT', 'RECEPTIONIST']}>
+                <ModulePlaceholder title="Appointments" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.PHARMACY}
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'PHARMACIST', 'DOCTOR']}>
+                <ModulePlaceholder title="Pharmacy" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.BILLING}
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'RECEPTIONIST', 'PATIENT']}>
+                <ModulePlaceholder title="Billing" />
+              </ProtectedRoute>
+            }
+          />
           <Route path={ROUTES.SETTINGS} element={<ModulePlaceholder title="Settings" />} />
           <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
         </Route>

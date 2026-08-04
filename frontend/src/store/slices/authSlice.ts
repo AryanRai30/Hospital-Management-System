@@ -6,20 +6,31 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
+  error: string | null;
 }
 
+const getStoredUser = (): User | null => {
+  try {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getStoredToken = (): string | null => {
+  return localStorage.getItem('accessToken') || null;
+};
+
+const storedUser = getStoredUser();
+const storedToken = getStoredToken();
+
 const initialState: AuthState = {
-  user: {
-    id: 1,
-    username: 'dr.smith',
-    email: 'smith@hospital.com',
-    firstName: 'Dr. John',
-    lastName: 'Smith',
-    role: 'DOCTOR'
-  },
-  token: 'sample-jwt-token-placeholder',
-  isAuthenticated: true,
-  loading: false
+  user: storedUser,
+  token: storedToken,
+  isAuthenticated: Boolean(storedUser && storedToken),
+  loading: false,
+  error: null
 };
 
 const authSlice = createSlice({
@@ -33,14 +44,37 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+
+      localStorage.setItem('accessToken', action.payload.token);
+      localStorage.setItem('user', JSON.stringify(action.payload.user));
+    },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem('user', JSON.stringify(state.user));
+      }
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+      state.loading = false;
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.loading = false;
+      state.error = null;
+
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
     }
   }
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, updateUser, setLoading, setError, logout } = authSlice.actions;
 export default authSlice.reducer;

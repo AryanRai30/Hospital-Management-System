@@ -1,12 +1,20 @@
-export type UserRole = 'ADMIN' | 'DOCTOR' | 'NURSE' | 'PATIENT' | 'RECEPTIONIST' | 'PHARMACIST';
+export type UserRole = 
+  | 'ADMIN' 
+  | 'DOCTOR' 
+  | 'NURSE' 
+  | 'PATIENT' 
+  | 'RECEPTIONIST' 
+  | 'PHARMACIST' 
+  | 'LAB_TECHNICIAN';
 
 export interface User {
   id: number;
-  username: string;
   email: string;
   firstName: string;
   lastName: string;
   role: UserRole;
+  phoneNumber?: string;
+  isEmailVerified: boolean;
   avatarUrl?: string;
 }
 
@@ -15,6 +23,11 @@ export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
   data: T;
+}
+
+export interface LoginResponseData {
+  user: User;
+  accessToken: string;
 }
 
 export interface NavItem {
