@@ -10,6 +10,7 @@ export const ROUTES = {
   UNAUTHORIZED: '/unauthorized',
   SESSION_EXPIRED: '/session-expired',
   DASHBOARD: '/dashboard',
+  ADMIN_DASHBOARD: '/admin/dashboard',
   PATIENTS: '/patients',
   DOCTORS: '/doctors',
   APPOINTMENTS: '/appointments',

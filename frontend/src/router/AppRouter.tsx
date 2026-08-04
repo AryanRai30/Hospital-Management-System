@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Dashboard } from '../pages/Dashboard';
+import { AdminDashboard } from '../pages/AdminDashboard';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { ForgotPassword } from '../pages/ForgotPassword';
@@ -56,6 +57,14 @@ export const AppRouter: React.FC = () => {
         >
           <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
           <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+          <Route
+            path={ROUTES.ADMIN_DASHBOARD}
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Role Protected Routes */}
           <Route

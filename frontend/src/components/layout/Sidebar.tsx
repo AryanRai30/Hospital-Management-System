@@ -9,17 +9,21 @@ import {
   CreditCard,
   Settings,
   Activity,
-  LogOut
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import { useAppSelector } from '../../hooks/store';
 import { cn } from '../../utils/helpers';
 import { ROUTES, APP_NAME } from '../../config/constants';
+import { UserRole } from '../../types';
 
 export const Sidebar: React.FC = () => {
   const { sidebarOpen } = useAppSelector((state) => state.ui);
+  const { user } = useAppSelector((state) => state.auth);
 
-  const navItems = [
+  const navItems: Array<{ label: string; path: string; icon: any; roles?: UserRole[] }> = [
     { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+    { label: 'Admin Dashboard', path: ROUTES.ADMIN_DASHBOARD, icon: ShieldCheck, roles: ['ADMIN'] },
     { label: 'Patients', path: ROUTES.PATIENTS, icon: Users },
     { label: 'Doctors', path: ROUTES.DOCTORS, icon: UserCheck },
     { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
@@ -27,6 +31,10 @@ export const Sidebar: React.FC = () => {
     { label: 'Billing', path: ROUTES.BILLING, icon: CreditCard },
     { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
   ];
+
+  const filteredNavItems = navItems.filter(
+    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
+  );
 
   return (
     <aside
@@ -50,7 +58,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation Links */}
       <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
