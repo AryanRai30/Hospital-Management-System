@@ -342,6 +342,384 @@ class EmailService {
       return false;
     }
   }
+
+  /**
+   * Helper to fetch active Admin emails from MySQL database
+   */
+  static async getAdminEmails() {
+    try {
+      const { pool } = require('../config/db.config');
+      const [rows] = await pool.query(
+        `SELECT u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'ADMIN' AND u.is_active = 1`
+      );
+      if (rows && rows.length > 0) {
+        return rows.map((r) => r.email);
+      }
+    } catch (err) {
+      logger.warn(`Could not fetch admin emails: ${err.message}`);
+    }
+    return [process.env.ADMIN_EMAIL || 'admin@hospital.com'];
+  }
+
+  /**
+   * Build Professional Responsive HTML Email Template for Appointments
+   */
+  static buildAppointmentEmailHtml(subject, title, appointment, customNote = '') {
+    const hospitalName = process.env.HOSPITAL_NAME || 'CarePulse Hospital';
+    const hospitalPhone = process.env.HOSPITAL_PHONE || '+1 (555) 019-9000';
+    const hospitalEmail = process.env.HOSPITAL_EMAIL || 'support@hospital.com';
+    const hospitalAddress = process.env.HOSPITAL_ADDRESS || '100 Health Sciences Blvd, Medical Center, Suite 400';
+
+    const aptDate = appointment.appointment_date ? String(appointment.appointment_date).split('T')[0] : 'N/A';
+    const aptTime = appointment.appointment_time || 'N/A';
+    const aptMode = appointment.appointment_mode || 'OFFLINE';
+    const aptType = appointment.type || 'Standard Consultation';
+    const status = appointment.status || 'PENDING';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+          <!-- Header -->
+          <div style="background-color: #0f172a; padding: 24px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">
+              🏥 ${hospitalName}
+            </h1>
+            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Smart Healthcare & Patient Portal</p>
+          </div>
+          
+          <!-- Content Body -->
+          <div style="padding: 32px 24px; color: #334155;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 20px; font-weight: 600;">
+              ${title}
+            </h2>
+            ${customNote ? `<p style="font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 20px;">${customNote}</p>` : ''}
+            
+            <!-- Appointment Card Data Table -->
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px;">
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b; width: 40%;">Hospital Name:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">${hospitalName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Appointment ID:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #2563eb; font-family: monospace;">${appointment.appointment_number}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Patient Name:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 500;">${appointment.patient_name || 'Patient'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Doctor Name:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 500;">${appointment.doctor_name || 'Doctor'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Department:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${appointment.department_name || 'General Medicine'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Appointment Date:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;">${aptDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Appointment Time:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-family: monospace; font-weight: 600;">${aptTime}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Appointment Type:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${aptMode} (${aptType})</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; ${appointment.symptoms || appointment.consultation_notes ? 'border-bottom: 1px solid #e2e8f0;' : ''} font-weight: 600; color: #64748b;">Current Status:</td>
+                <td style="padding: 12px 16px; ${appointment.symptoms || appointment.consultation_notes ? 'border-bottom: 1px solid #e2e8f0;' : ''} font-weight: 700; color: #059669;">${status}</td>
+              </tr>
+              ${appointment.symptoms ? `
+              <tr>
+                <td style="padding: 12px 16px; ${appointment.consultation_notes ? 'border-bottom: 1px solid #e2e8f0;' : ''} font-weight: 600; color: #64748b;">Symptoms / Reason:</td>
+                <td style="padding: 12px 16px; ${appointment.consultation_notes ? 'border-bottom: 1px solid #e2e8f0;' : ''} color: #0f172a;">${appointment.symptoms || appointment.reason}</td>
+              </tr>` : ''}
+              ${appointment.consultation_notes ? `
+              <tr>
+                <td style="padding: 12px 16px; font-weight: 600; color: #64748b;">Consultation Notes:</td>
+                <td style="padding: 12px 16px; color: #0f172a; font-style: italic;">${appointment.consultation_notes}</td>
+              </tr>` : ''}
+            </table>
+            
+            <!-- Hospital Contact Box -->
+            <div style="margin-top: 24px; padding: 16px; background-color: #f1f5f9; border-left: 4px solid #0284c7; border-radius: 6px;">
+              <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #0f172a;">📍 ${hospitalName} Contact & Location</h4>
+              <p style="margin: 0; font-size: 13px; color: #475569; line-height: 1.5;">
+                <strong>Phone:</strong> ${hospitalPhone} &nbsp;|&nbsp; <strong>Email:</strong> ${hospitalEmail}<br>
+                <strong>Address:</strong> ${hospitalAddress}
+              </p>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background-color: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8;">
+            <p style="margin: 0;">© 2026 ${hospitalName}. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Helper to send single appointment email using SMTP or simulated delivery
+   */
+  static async sendAppointmentEmail(recipientEmail, subject, title, appointment, customNote = '') {
+    if (!recipientEmail) return false;
+
+    const from = process.env.EMAIL_FROM || 'CarePulse Hospital <no-reply@hospital.com>';
+    const html = this.buildAppointmentEmailHtml(subject, title, appointment, customNote);
+
+    logger.info(`[EMAIL SERVICE] Sending '${subject}' to ${recipientEmail} for Appointment ${appointment.appointment_number}`);
+
+    const transporter = getTransporter();
+    if (!transporter) {
+      logger.info(`[EMAIL SERVICE] (Simulated SMTP Delivery) Email '${subject}' ready for ${recipientEmail}`);
+      return true;
+    }
+
+    try {
+      await transporter.sendMail({
+        from,
+        to: recipientEmail,
+        subject,
+        html
+      });
+      logger.info(`[EMAIL SERVICE SUCCESS] Email '${subject}' sent to ${recipientEmail}`);
+      return true;
+    } catch (error) {
+      logger.error(`[EMAIL SERVICE FAILURE] Failed sending '${subject}' to ${recipientEmail}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Main Appointment Event Dispatcher handling all 11 notification events
+   */
+  static async notifyAppointmentEvent(eventType, appointment, meta = {}) {
+    if (!appointment) return;
+
+    const patientEmail = appointment.patient_email;
+    const doctorEmail = appointment.doctor_email;
+    const adminEmails = await this.getAdminEmails();
+
+    switch (eventType) {
+      case 'ADMIN_CREATED':
+        // 1. Admin creates appointment -> Confirmation to Patient, Assignment to Doctor
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Confirmed - ${appointment.appointment_number}`,
+          'Your Appointment Has Been Booked',
+          appointment,
+          'An administrator has scheduled an appointment for you at CarePulse Hospital.'
+        );
+        await this.sendAppointmentEmail(
+          doctorEmail,
+          `New Appointment Assigned - ${appointment.appointment_number}`,
+          'New Patient Appointment Assigned',
+          appointment,
+          'An administrator has assigned a new patient appointment to your schedule.'
+        );
+        break;
+
+      case 'PATIENT_BOOKED':
+        // 2. Patient books appointment -> Confirmation to Patient, Request to Doctor, Alert to Admin
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Booking Requested - ${appointment.appointment_number}`,
+          'Appointment Booking Request Received',
+          appointment,
+          'Thank you for booking an appointment with CarePulse Hospital. Your request is currently pending confirmation.'
+        );
+        await this.sendAppointmentEmail(
+          doctorEmail,
+          `New Appointment Booking Request - ${appointment.appointment_number}`,
+          'New Patient Booking Request',
+          appointment,
+          'A patient has requested an appointment with you. Please review and accept/confirm.'
+        );
+        for (const adminEmail of adminEmails) {
+          await this.sendAppointmentEmail(
+            adminEmail,
+            `System Alert: New Patient Appointment Request - ${appointment.appointment_number}`,
+            'New Patient Appointment Request Alert',
+            appointment,
+            'A new appointment request has been submitted by a patient.'
+          );
+        }
+        break;
+
+      case 'DOCTOR_CREATED_FOLLOWUP':
+        // 3. Doctor creates Follow-up -> Follow-up email to Patient, Alert to Admin
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Follow-up Appointment Scheduled - ${appointment.appointment_number}`,
+          'Follow-up Appointment Scheduled',
+          appointment,
+          'Your doctor has scheduled a follow-up consultation for you.'
+        );
+        for (const adminEmail of adminEmails) {
+          await this.sendAppointmentEmail(
+            adminEmail,
+            `System Alert: Follow-up Appointment Created - ${appointment.appointment_number}`,
+            'Doctor Follow-up Appointment Alert',
+            appointment,
+            'A doctor has created a follow-up appointment.'
+          );
+        }
+        break;
+
+      case 'ADMIN_APPROVED':
+        // 4. Admin approves appointment -> Approval emails to Patient & Doctor
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Approved - ${appointment.appointment_number}`,
+          'Your Appointment Has Been Approved',
+          appointment,
+          'Good news! Your appointment booking has been approved and confirmed by the hospital administration.'
+        );
+        await this.sendAppointmentEmail(
+          doctorEmail,
+          `Appointment Approved - ${appointment.appointment_number}`,
+          'Patient Appointment Approved',
+          appointment,
+          'An appointment on your schedule has been approved and confirmed by the administration.'
+        );
+        break;
+
+      case 'DOCTOR_ACCEPTED':
+        // 5. Doctor accepts appointment -> Confirmed email to Patient
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Confirmed by Doctor - ${appointment.appointment_number}`,
+          'Your Doctor Has Confirmed Your Appointment',
+          appointment,
+          `Dr. ${appointment.doctor_name} has accepted and confirmed your upcoming consultation.`
+        );
+        break;
+
+      case 'ADMIN_RESCHEDULED':
+        // 6. Admin reschedules appointment -> Updated details to Patient & Doctor
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Rescheduled - ${appointment.appointment_number}`,
+          'Your Appointment Has Been Rescheduled',
+          appointment,
+          'Your appointment time slot has been updated by the hospital administration. Please check the updated schedule details below.'
+        );
+        await this.sendAppointmentEmail(
+          doctorEmail,
+          `Appointment Rescheduled - ${appointment.appointment_number}`,
+          'Schedule Update: Appointment Rescheduled',
+          appointment,
+          'An appointment on your schedule has been updated to a new date/time by administration.'
+        );
+        break;
+
+      case 'DOCTOR_RESCHEDULED':
+        // 7. Doctor reschedules appointment -> Updated details to Patient, Alert to Admin
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Rescheduled by Doctor - ${appointment.appointment_number}`,
+          'Your Doctor Has Rescheduled Your Appointment',
+          appointment,
+          'Your doctor has updated the date/time of your upcoming appointment.'
+        );
+        for (const adminEmail of adminEmails) {
+          await this.sendAppointmentEmail(
+            adminEmail,
+            `System Alert: Doctor Rescheduled Appointment - ${appointment.appointment_number}`,
+            'Doctor Rescheduled Appointment Alert',
+            appointment,
+            'A doctor has updated the schedule of an appointment.'
+          );
+        }
+        break;
+
+      case 'PATIENT_CANCELLED':
+        // 8. Patient cancels appointment -> Cancellation email to Doctor, Alert to Admin
+        await this.sendAppointmentEmail(
+          doctorEmail,
+          `Appointment Cancelled by Patient - ${appointment.appointment_number}`,
+          'Patient Cancelled Appointment',
+          appointment,
+          'The patient has cancelled their upcoming appointment slot.'
+        );
+        for (const adminEmail of adminEmails) {
+          await this.sendAppointmentEmail(
+            adminEmail,
+            `System Alert: Patient Cancelled Appointment - ${appointment.appointment_number}`,
+            'Patient Cancelled Appointment Alert',
+            appointment,
+            'A patient has cancelled their appointment.'
+          );
+        }
+        break;
+
+      case 'DOCTOR_CANCELLED':
+        // 9. Doctor cancels appointment -> Cancellation email to Patient, Alert to Admin
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Cancelled by Doctor - ${appointment.appointment_number}`,
+          'Notice: Your Appointment Has Been Cancelled',
+          appointment,
+          'We regret to inform you that your upcoming appointment has been cancelled by the doctor. Please contact us to reschedule.'
+        );
+        for (const adminEmail of adminEmails) {
+          await this.sendAppointmentEmail(
+            adminEmail,
+            `System Alert: Doctor Cancelled Appointment - ${appointment.appointment_number}`,
+            'Doctor Cancelled Appointment Alert',
+            appointment,
+            'A doctor has cancelled an appointment.'
+          );
+        }
+        break;
+
+      case 'ADMIN_CANCELLED':
+        // 10. Admin cancels appointment -> Cancellation emails to Patient & Doctor
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Cancelled - ${appointment.appointment_number}`,
+          'Notice: Appointment Cancelled',
+          appointment,
+          'Your appointment has been cancelled by hospital administration. Please reach out to our desk if you have any questions.'
+        );
+        await this.sendAppointmentEmail(
+          doctorEmail,
+          `Appointment Cancelled - ${appointment.appointment_number}`,
+          'Schedule Update: Appointment Cancelled',
+          appointment,
+          'An appointment on your schedule has been cancelled by administration.'
+        );
+        break;
+
+      case 'DOCTOR_COMPLETED':
+        // 11. Doctor marks Completed -> Completion email to Patient
+        await this.sendAppointmentEmail(
+          patientEmail,
+          `Appointment Completed - ${appointment.appointment_number}`,
+          'Consultation Completed & Summary',
+          appointment,
+          'Thank you for visiting CarePulse Hospital. Your consultation has been completed by your doctor. Clinical notes are included below.'
+        );
+        break;
+
+      default:
+        logger.info(`[EMAIL SERVICE] Unhandled appointment event type: ${eventType}`);
+        break;
+    }
+  }
 }
 
 module.exports = EmailService;

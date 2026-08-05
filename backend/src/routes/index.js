@@ -6,11 +6,13 @@ const authRoutes = require('./auth.routes');
 const adminRoutes = require('./admin.routes');
 const doctorRoutes = require('./doctor.routes');
 const patientRoutes = require('./patient.routes');
+const appointmentRoutes = require('./appointment.routes');
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/doctors', doctorRoutes);
 router.use('/patients', patientRoutes);
+router.use('/appointments', appointmentRoutes);
 
 module.exports = router;
