@@ -24,7 +24,7 @@ export const Sidebar: React.FC = () => {
   const navItems: Array<{ label: string; path: string; icon: any; roles?: UserRole[] }> = [
     { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
     { label: 'Admin Dashboard', path: ROUTES.ADMIN_DASHBOARD, icon: ShieldCheck, roles: ['ADMIN'] },
-    { label: 'Patients', path: ROUTES.PATIENTS, icon: Users },
+    { label: 'Patients', path: ROUTES.PATIENTS, icon: Users, roles: ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST'] },
     { label: 'Doctors', path: ROUTES.DOCTORS, icon: UserCheck, roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
     { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
     { label: 'Pharmacy', path: ROUTES.PHARMACY, icon: Pill },

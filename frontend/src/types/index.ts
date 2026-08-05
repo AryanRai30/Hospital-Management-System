@@ -39,3 +39,4 @@ export interface NavItem {
 }
 
 export * from './doctor';
+export * from './patient';
