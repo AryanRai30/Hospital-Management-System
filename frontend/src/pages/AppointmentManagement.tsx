@@ -406,15 +406,17 @@ export const AppointmentManagement: React.FC = () => {
             Refresh
           </Button>
 
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleOpenAddModal}
-            className="flex items-center gap-2 shadow-md shadow-primary-600/20"
-          >
-            <Plus className="w-4 h-4" />
-            Book New Appointment
-          </Button>
+          {!isDoctor && (
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 shadow-md shadow-primary-600/20"
+            >
+              <Plus className="w-4 h-4" />
+              Book New Appointment
+            </Button>
+          )}
         </div>
       </div>
 

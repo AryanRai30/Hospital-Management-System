@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { ChangePasswordModal } from '../auth/ChangePasswordModal';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../config/constants';
+import { getUserFullName, getUserInitials } from '../../utils/user.helpers';
 
 export const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -15,6 +16,9 @@ export const Navbar: React.FC = () => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+
+  const displayName = getUserFullName(user);
+  const initials = getUserInitials(user);
 
   const handleLogout = async () => {
     try {
@@ -65,15 +69,23 @@ export const Navbar: React.FC = () => {
               onClick={() => setMenuOpen(!menuOpen)}
               className="flex items-center gap-2 pl-1 text-left focus:outline-none p-1 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-primary-100 border border-primary-300 text-primary-700 flex items-center justify-center font-semibold text-xs shadow-xs">
-                {user ? `${user.firstName[0]}${user.lastName[0]}` : <UserIcon className="w-4 h-4" />}
-              </div>
+              {user?.avatarUrl || user?.avatar_url ? (
+                <img
+                  src={user.avatarUrl || user.avatar_url}
+                  alt={displayName}
+                  className="w-8 h-8 rounded-full object-cover border border-primary-300 shadow-xs"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary-100 border border-primary-300 text-primary-700 flex items-center justify-center font-bold text-xs shadow-xs">
+                  {initials}
+                </div>
+              )}
               <div className="hidden sm:block">
                 <p className="text-xs font-semibold text-slate-800 leading-tight">
-                  {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}
+                  {displayName}
                 </p>
                 <p className="text-[10px] font-medium text-slate-500 capitalize">
-                  {user?.role.toLowerCase() || 'Visitor'}
+                  {user?.role ? user.role.toLowerCase() : 'Visitor'}
                 </p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -81,17 +93,20 @@ export const Navbar: React.FC = () => {
 
             {menuOpen && (
               <div
-                className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150"
+                className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150"
                 onClick={() => setMenuOpen(false)}
               >
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-800">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
+                <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/50">
+                  <p className="text-xs font-bold text-slate-900">{displayName}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{user?.email || 'authenticated'}</p>
+                  <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 text-[9px] font-bold uppercase border border-primary-200">
+                    Role: {user?.role || 'USER'}
+                  </span>
                 </div>
 
                 <button
                   onClick={() => setPasswordModalOpen(true)}
-                  className="w-full px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+                  className="w-full px-3.5 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors mt-1"
                 >
                   <Key className="w-3.5 h-3.5 text-slate-400" />
                   <span>Change Password</span>
@@ -99,7 +114,7 @@ export const Navbar: React.FC = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors border-t border-slate-100"
+                  className="w-full px-3.5 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors border-t border-slate-100 mt-1"
                 >
                   <LogOut className="w-3.5 h-3.5 text-rose-500" />
                   <span>Sign Out</span>

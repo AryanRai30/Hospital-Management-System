@@ -10,31 +10,85 @@ import {
   Settings,
   Activity,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  FlaskConical,
+  Clock
 } from 'lucide-react';
 import { useAppSelector } from '../../hooks/store';
 import { cn } from '../../utils/helpers';
 import { ROUTES, APP_NAME } from '../../config/constants';
-import { UserRole } from '../../types';
+import { getUserFullName } from '../../utils/user.helpers';
+
+interface NavItem {
+  label: string;
+  path: string;
+  icon: any;
+}
 
 export const Sidebar: React.FC = () => {
   const { sidebarOpen } = useAppSelector((state) => state.ui);
   const { user } = useAppSelector((state) => state.auth);
 
-  const navItems: Array<{ label: string; path: string; icon: any; roles?: UserRole[] }> = [
-    { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
-    { label: 'Admin Dashboard', path: ROUTES.ADMIN_DASHBOARD, icon: ShieldCheck, roles: ['ADMIN'] },
-    { label: 'Patients', path: ROUTES.PATIENTS, icon: Users, roles: ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST'] },
-    { label: 'Doctors', path: ROUTES.DOCTORS, icon: UserCheck, roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
-    { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar, roles: ['ADMIN', 'DOCTOR', 'NURSE', 'PATIENT', 'RECEPTIONIST'] },
-    { label: 'Pharmacy', path: ROUTES.PHARMACY, icon: Pill },
-    { label: 'Billing', path: ROUTES.BILLING, icon: CreditCard, roles: ['ADMIN', 'DOCTOR', 'PATIENT', 'RECEPTIONIST'] },
-    { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
-  ];
+  const getNavItemsForRole = (role?: string): NavItem[] => {
+    switch (role) {
+      case 'ADMIN':
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'Patients', path: ROUTES.PATIENTS, icon: Users },
+          { label: 'Doctors', path: ROUTES.DOCTORS, icon: UserCheck },
+          { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
+          { label: 'Pharmacy', path: ROUTES.PHARMACY, icon: Pill },
+          { label: 'Billing', path: ROUTES.BILLING, icon: CreditCard },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+      case 'DOCTOR':
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'My Patients', path: ROUTES.PATIENTS, icon: Users },
+          { label: 'My Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
+          { label: 'Prescriptions', path: ROUTES.PHARMACY, icon: Pill },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+      case 'PATIENT':
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'My Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
+          { label: 'Prescriptions', path: ROUTES.PHARMACY, icon: Pill },
+          { label: 'Billing & Payments', path: ROUTES.BILLING, icon: CreditCard },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+      case 'RECEPTIONIST':
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'Patients', path: ROUTES.PATIENTS, icon: Users },
+          { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
+          { label: 'Billing', path: ROUTES.BILLING, icon: CreditCard },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+      case 'PHARMACIST':
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'Pharmacy Desk', path: ROUTES.PHARMACY, icon: Pill },
+          { label: 'Billing & Sales', path: ROUTES.BILLING, icon: CreditCard },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+      case 'LAB_TECHNICIAN':
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'Patients', path: ROUTES.PATIENTS, icon: Users },
+          { label: 'Diagnostic Queue', path: ROUTES.APPOINTMENTS, icon: Calendar },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+      default:
+        return [
+          { label: 'Dashboard', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+          { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar },
+          { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
+        ];
+    }
+  };
 
-  const filteredNavItems = navItems.filter(
-    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
-  );
+  const navItems = getNavItemsForRole(user?.role);
 
   return (
     <aside
@@ -51,18 +105,20 @@ export const Sidebar: React.FC = () => {
         {sidebarOpen && (
           <div className="overflow-hidden whitespace-nowrap">
             <h1 className="font-bold text-slate-100 text-base leading-none">{APP_NAME}</h1>
-            <span className="text-[10px] font-medium text-primary-400 tracking-wider uppercase">Management System</span>
+            <span className="text-[10px] font-medium text-primary-400 tracking-wider uppercase">
+              {user?.role ? `${user.role} WORKSPACE` : 'MANAGEMENT SYSTEM'}
+            </span>
           </div>
         )}
       </div>
 
       {/* Navigation Links */}
       <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
-        {filteredNavItems.map((item) => {
+        {navItems.map((item, index) => {
           const Icon = item.icon;
           return (
             <NavLink
-              key={item.path}
+              key={`${item.path}-${index}`}
               to={item.path}
               className={({ isActive }) =>
                 cn(
@@ -81,9 +137,23 @@ export const Sidebar: React.FC = () => {
         })}
       </div>
 
+      {/* User Role Badge Footer */}
+      {sidebarOpen && user && (
+        <div className="px-4 py-2.5 bg-slate-950/60 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+          <span className="truncate font-semibold text-slate-200">{getUserFullName(user)}</span>
+          <span className="px-2 py-0.5 rounded bg-primary-950 text-primary-400 text-[10px] font-bold border border-primary-800 uppercase flex-shrink-0 ml-2">
+            {user.role}
+          </span>
+        </div>
+      )}
+
       {/* Footer / Logout */}
       <div className="p-3 border-t border-slate-800">
         <button
+          onClick={() => {
+            localStorage.clear();
+            window.location.href = '/login';
+          }}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-rose-950/40 hover:text-rose-400 transition-colors'
           )}

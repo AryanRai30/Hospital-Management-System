@@ -10,13 +10,35 @@ try {
 }
 
 /**
+ * Helper to detect local development environment or localhost client IP
+ */
+const isDevOrLocalhost = (req) => {
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+    return true;
+  }
+
+  const ip = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+  return (
+    ip === '127.0.0.1' ||
+    ip === '::1' ||
+    ip === '::ffff:127.0.0.1' ||
+    ip.includes('127.0.0.1') ||
+    ip.includes('localhost')
+  );
+};
+
+/**
  * Built-in in-memory rate limiter fallback
  */
 const createInMemoryLimiter = (windowMs = 15 * 60 * 1000, max = 5, message = 'Too many requests. Please try again later.') => {
   const hits = new Map();
 
   return (req, res, next) => {
-    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown-ip';
+    if (isDevOrLocalhost(req)) {
+      return next();
+    }
+
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown-ip';
     const now = Date.now();
     const clientData = hits.get(ip) || { count: 0, resetTime: now + windowMs };
 
@@ -46,7 +68,8 @@ const createRateLimiter = (windowMs, max, message) => {
   if (expressRateLimit) {
     return expressRateLimit({
       windowMs,
-      max,
+      max: process.env.NODE_ENV === 'development' ? 1000 : max,
+      skip: (req) => isDevOrLocalhost(req),
       standardHeaders: true,
       legacyHeaders: false,
       message: {

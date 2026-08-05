@@ -470,7 +470,7 @@ export const BillingManagement: React.FC = () => {
             Refresh
           </Button>
 
-          {isAdmin && (
+          {(isAdmin || userRole === 'RECEPTIONIST') && (
             <Button
               variant="primary"
               size="md"

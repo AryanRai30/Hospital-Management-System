@@ -317,7 +317,7 @@ export const PatientManagement: React.FC = () => {
             Refresh
           </Button>
 
-          {isAdmin ? (
+          {isAdmin || user?.role === 'RECEPTIONIST' ? (
             <Button
               variant="primary"
               size="md"

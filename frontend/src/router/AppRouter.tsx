@@ -98,7 +98,7 @@ export const AppRouter: React.FC = () => {
           <Route
             path={ROUTES.PHARMACY}
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'PHARMACIST', 'DOCTOR']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'PHARMACIST', 'DOCTOR', 'PATIENT']}>
                 <ModulePlaceholder title="Pharmacy" />
               </ProtectedRoute>
             }
