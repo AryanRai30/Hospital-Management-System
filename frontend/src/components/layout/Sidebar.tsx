@@ -28,7 +28,7 @@ export const Sidebar: React.FC = () => {
     { label: 'Doctors', path: ROUTES.DOCTORS, icon: UserCheck, roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
     { label: 'Appointments', path: ROUTES.APPOINTMENTS, icon: Calendar, roles: ['ADMIN', 'DOCTOR', 'NURSE', 'PATIENT', 'RECEPTIONIST'] },
     { label: 'Pharmacy', path: ROUTES.PHARMACY, icon: Pill },
-    { label: 'Billing', path: ROUTES.BILLING, icon: CreditCard },
+    { label: 'Billing', path: ROUTES.BILLING, icon: CreditCard, roles: ['ADMIN', 'DOCTOR', 'PATIENT', 'RECEPTIONIST'] },
     { label: 'Settings', path: ROUTES.SETTINGS, icon: Settings }
   ];
 

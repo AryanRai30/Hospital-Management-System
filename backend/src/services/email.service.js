@@ -720,6 +720,282 @@ class EmailService {
         break;
     }
   }
+
+  /**
+   * Build Professional Responsive HTML Email Template for Billing & Payments
+   */
+  static buildBillingEmailHtml(subject, title, bill, customNote = '') {
+    const hospitalName = process.env.HOSPITAL_NAME || 'CarePulse Hospital';
+    const hospitalPhone = process.env.HOSPITAL_PHONE || '+1 (555) 019-9000';
+    const hospitalEmail = process.env.HOSPITAL_EMAIL || 'support@hospital.com';
+    const hospitalAddress = process.env.HOSPITAL_ADDRESS || '100 Health Sciences Blvd, Medical Center, Suite 400';
+
+    const invoiceNo = bill.invoice_number || `INV-${bill.id}`;
+    const billId = bill.id;
+    const aptNo = bill.appointment_number || bill.appointment_id || 'N/A';
+    const patientName = bill.patient_name || 'Valued Patient';
+    const doctorName = bill.doctor_name || 'Attending Physician';
+    const deptName = bill.department_name || 'General Outpatient';
+    const consultDate = bill.appointment_date
+      ? String(bill.appointment_date).split('T')[0]
+      : (bill.created_at ? String(bill.created_at).split('T')[0] : 'N/A');
+    const paymentMethod = bill.payment_method || 'Online Payment Gateway';
+    const paymentStatus = bill.payment_status || 'UNPAID';
+    const grandTotal = Number(bill.grand_total || bill.total_amount || 0).toFixed(2);
+    const amountPaid = Number(bill.paid_amount || 0).toFixed(2);
+    const dueBalance = Number(bill.due_amount || 0).toFixed(2);
+    const txnId = bill.transaction_id || bill.razorpay_payment_id || 'N/A';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${subject}</title>
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+          <div style="background-color: #0f172a; padding: 24px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 700;">
+              💳 ${hospitalName} - Billing Statement
+            </h1>
+            <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Official Patient Invoice & Payment Receipt</p>
+          </div>
+          
+          <div style="padding: 32px 24px; color: #334155;">
+            <h2 style="color: #0f172a; margin-top: 0; font-size: 20px; font-weight: 600;">
+              ${title}
+            </h2>
+            ${customNote ? `<p style="font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 20px;">${customNote}</p>` : ''}
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px;">
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b; width: 40%;">Hospital Name:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">${hospitalName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Invoice Number:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #2563eb; font-family: monospace;">${invoiceNo}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Bill ID:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-family: monospace;">#BILL-${billId}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Appointment ID:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-family: monospace;">${aptNo}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Patient Name:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 500;">${patientName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Doctor Name:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${doctorName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Department:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${deptName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Consultation Date:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a;">${consultDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Payment Method:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600;">${paymentMethod}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Payment Status:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #059669;">${paymentStatus}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Grand Total Amount:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 700; font-size: 15px;">₹${grandTotal}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Amount Paid:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #059669; font-weight: 700;">₹${amountPaid}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Remaining Balance:</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #dc2626; font-weight: 700;">₹${dueBalance}</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; font-weight: 600; color: #64748b;">Transaction Reference ID:</td>
+                <td style="padding: 12px 16px; color: #0f172a; font-family: monospace;">${txnId}</td>
+              </tr>
+            </table>
+            
+            <div style="margin-top: 24px; padding: 16px; background-color: #f1f5f9; border-left: 4px solid #0284c7; border-radius: 6px;">
+              <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #0f172a;">📍 ${hospitalName} Contact & Location</h4>
+              <p style="margin: 0; font-size: 13px; color: #475569; line-height: 1.5;">
+                <strong>Phone:</strong> ${hospitalPhone} &nbsp;|&nbsp; <strong>Email:</strong> ${hospitalEmail}<br>
+                <strong>Address:</strong> ${hospitalAddress}
+              </p>
+            </div>
+          </div>
+          
+          <div style="background-color: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8;">
+            <p style="margin: 0;">© 2026 ${hospitalName}. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Helper to send single billing email with receipt attachment
+   */
+  static async sendBillingEmail(recipientEmail, subject, title, bill, customNote = '', attachReceipt = true) {
+    if (!recipientEmail) return false;
+
+    const from = process.env.EMAIL_FROM || 'CarePulse Hospital <no-reply@hospital.com>';
+    const html = this.buildBillingEmailHtml(subject, title, bill, customNote);
+
+    logger.info(`[EMAIL SERVICE] Sending Billing Email '${subject}' to ${recipientEmail}`);
+
+    const transporter = getTransporter();
+    const mailOptions = {
+      from,
+      to: recipientEmail,
+      subject,
+      html
+    };
+
+    if (attachReceipt && bill) {
+      mailOptions.attachments = [
+        {
+          filename: `Receipt-${bill.invoice_number || 'INV'}.html`,
+          content: html,
+          contentType: 'text/html'
+        }
+      ];
+    }
+
+    if (!transporter) {
+      logger.info(`[EMAIL SERVICE] (Simulated SMTP Delivery) Billing Email '${subject}' ready for ${recipientEmail}`);
+      return true;
+    }
+
+    try {
+      await transporter.sendMail(mailOptions);
+      logger.info(`[EMAIL SERVICE SUCCESS] Billing Email '${subject}' sent to ${recipientEmail}`);
+      return true;
+    } catch (error) {
+      logger.error(`[EMAIL SERVICE FAILURE] Failed sending Billing Email '${subject}' to ${recipientEmail}: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Billing Event Dispatcher handling all billing notification events
+   */
+  static async notifyBillingEvent(eventType, bill, meta = {}) {
+    if (!bill) return;
+
+    const patientEmail = bill.patient_email;
+    const doctorEmail = bill.doctor_email;
+
+    switch (eventType) {
+      case 'BILL_GENERATED':
+        // 1. When bill is generated -> Email Patient
+        await this.sendBillingEmail(
+          patientEmail,
+          `New Billing Invoice Issued - ${bill.invoice_number}`,
+          'Hospital Bill Generated',
+          bill,
+          'A new billing statement has been generated for your medical services. Please review invoice details below.'
+        );
+        break;
+
+      case 'PAYMENT_SUCCESS':
+        // 2. When payment is successful -> Email Patient & Doctor
+        await this.sendBillingEmail(
+          patientEmail,
+          `Payment Receipt & Confirmation - ${bill.invoice_number}`,
+          'Payment Received Successfully',
+          bill,
+          'Thank you! Your payment for the invoice has been processed successfully.'
+        );
+        await this.sendBillingEmail(
+          doctorEmail,
+          `Payment Notification - ${bill.invoice_number}`,
+          'Patient Payment Received',
+          bill,
+          'A patient associated with your consultation has completed payment for their invoice.'
+        );
+        break;
+
+      case 'PARTIAL_PAYMENT_RECEIVED':
+        // 3. When partial payment is received -> Email Patient
+        await this.sendBillingEmail(
+          patientEmail,
+          `Partial Payment Receipt - ${bill.invoice_number}`,
+          'Partial Payment Received',
+          bill,
+          `A partial payment of ₹${meta.installmentAmount || bill.paid_amount} has been received for your hospital bill. Remaining due balance: ₹${bill.due_amount}.`
+        );
+        break;
+
+      case 'PAYMENT_FAILED':
+        // 4. When payment fails -> Email Patient
+        await this.sendBillingEmail(
+          patientEmail,
+          `Payment Failed Notice - ${bill.invoice_number}`,
+          'Payment Processing Failed',
+          bill,
+          'We were unable to process your online payment. Please check your payment method or try again.'
+        );
+        break;
+
+      case 'PAYMENT_REFUNDED':
+        // 5. When payment is refunded -> Email Patient & Doctor
+        await this.sendBillingEmail(
+          patientEmail,
+          `Refund Processed Notice - ${bill.invoice_number}`,
+          'Payment Refund Issued',
+          bill,
+          'A refund has been processed for your hospital billing payment.'
+        );
+        await this.sendBillingEmail(
+          doctorEmail,
+          `Billing Refund Alert - ${bill.invoice_number}`,
+          'Payment Refund Alert',
+          bill,
+          'A billing payment associated with your consultation has been refunded.'
+        );
+        break;
+
+      case 'INVOICE_GENERATED':
+        // 6. When invoice is generated / sent -> Email Patient
+        await this.sendBillingEmail(
+          patientEmail,
+          `Official Medical Invoice - ${bill.invoice_number}`,
+          'Medical Service Invoice',
+          bill,
+          'Please find your official medical bill invoice summary below.'
+        );
+        break;
+
+      case 'OFFLINE_PAYMENT_RECORDED':
+        // 7. When Admin records an offline payment -> Email Patient
+        await this.sendBillingEmail(
+          patientEmail,
+          `Offline Payment Receipt - ${bill.invoice_number}`,
+          'Offline Payment Recorded',
+          bill,
+          'An offline payment (Cash / Card / Counter) has been recorded against your hospital bill by hospital administration.'
+        );
+        break;
+
+      default:
+        logger.info(`[EMAIL SERVICE] Unhandled billing event type: ${eventType}`);
+        break;
+    }
+  }
 }
 
 module.exports = EmailService;

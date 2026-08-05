@@ -340,6 +340,51 @@ class AppointmentController {
             const fullAppointment = await AppointmentModel.findById(id);
             await EmailService.notifyAppointmentEvent(eventType, fullAppointment);
           }
+
+          // Auto-Generate Bill if appointment is marked COMPLETED and bill does not exist
+          if (status === 'COMPLETED' && existing.status !== 'COMPLETED') {
+            try {
+              const BillingModel = require('../models/billing.model');
+              const fullApt = await AppointmentModel.findById(id);
+              if (fullApt) {
+                const existingBills = await BillingModel.findAll({
+                  search: '',
+                  status: '',
+                  paymentMethod: '',
+                  patientId: fullApt.patient_id,
+                  doctorId: '',
+                  userRole: 'ADMIN',
+                  userId: null
+                });
+
+                const billExists = existingBills.some(
+                  (b) => String(b.appointment_id) === String(id)
+                );
+
+                if (!billExists) {
+                  const docFee = Number(fullApt.doctor_fee || 500);
+                  const generatedBill = await BillingModel.create({
+                    patientId: fullApt.patient_id,
+                    doctorId: fullApt.doctor_id,
+                    departmentId: fullApt.department_id,
+                    appointmentId: fullApt.id,
+                    consultationFee: docFee,
+                    paymentStatus: 'UNPAID',
+                    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split('T')[0]
+                  });
+                  logger.info(
+                    `[AUTO-BILLING] Generated bill ${generatedBill.invoice_number} for completed appointment ${fullApt.appointment_number}`
+                  );
+                }
+              }
+            } catch (autoBillErr) {
+              logger.error(
+                `[AUTO-BILLING ERROR] Could not auto-generate bill for appointment ${id}: ${autoBillErr.message}`
+              );
+            }
+          }
         } catch (emailErr) {
           logger.error(`[EMAIL ERROR] Failed sending appointment update notifications: ${emailErr.message}`);
         }

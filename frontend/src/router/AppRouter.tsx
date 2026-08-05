@@ -6,6 +6,7 @@ import { AdminDashboard } from '../pages/AdminDashboard';
 import { DoctorManagement } from '../pages/DoctorManagement';
 import { PatientManagement } from '../pages/PatientManagement';
 import { AppointmentManagement } from '../pages/AppointmentManagement';
+import { BillingManagement } from '../pages/BillingManagement';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { ForgotPassword } from '../pages/ForgotPassword';
@@ -105,8 +106,8 @@ export const AppRouter: React.FC = () => {
           <Route
             path={ROUTES.BILLING}
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'RECEPTIONIST', 'PATIENT']}>
-                <ModulePlaceholder title="Billing" />
+              <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'PATIENT', 'RECEPTIONIST']}>
+                <BillingManagement />
               </ProtectedRoute>
             }
           />
