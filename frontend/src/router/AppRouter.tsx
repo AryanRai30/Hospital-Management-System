@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import { Dashboard } from '../pages/Dashboard';
 import { AdminDashboard } from '../pages/AdminDashboard';
+import { DoctorManagement } from '../pages/DoctorManagement';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
 import { ForgotPassword } from '../pages/ForgotPassword';
@@ -79,7 +80,7 @@ export const AppRouter: React.FC = () => {
             path={ROUTES.DOCTORS}
             element={
               <ProtectedRoute allowedRoles={['ADMIN', 'DOCTOR', 'RECEPTIONIST']}>
-                <ModulePlaceholder title="Doctors" />
+                <DoctorManagement />
               </ProtectedRoute>
             }
           />

@@ -37,3 +37,5 @@ export interface NavItem {
   roles?: UserRole[];
   badge?: string;
 }
+
+export * from './doctor';
